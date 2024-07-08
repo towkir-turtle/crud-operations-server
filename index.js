@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const Item = require("./Models/item.model.js");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -14,15 +15,65 @@ mongoose
   )
   .then(() => {
     console.log("database connected");
+
+    app.listen(port, () => {
+      console.log(`App listening on port ${port}`);
+    });
   })
   .catch(() => {
     console.log("connection failed!");
   });
 
-app.get("/", (req, res) => {
-  res.send("crud server is running!");
+// get API:
+app.get("/items", async (req, res) => {
+  try {
+    const items = await Item.find({});
+    res.status(200).json(items);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
+// get single item:
+app.get("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Item.findById(id);
+    res.status(200).json(item);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// post API:
+app.post("/items", async (req, res) => {
+  try {
+    const item = await Item.create(req.body);
+    res.status(200).json(item);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// update an item:
+app.put("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Item.findByIdAndUpdate(id, req.body);
+    const updatedItem = await Item.findById(id);
+    res.status(200).json(updatedItem);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// delete an item:
+app.delete("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteItem = await Item.findByIdAndDelete(id);
+    res.status(200).json("successfully deleted item");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
